@@ -1,0 +1,18 @@
+{
+  "name": "healthcare-records-mongodb-cluster",
+  "version": "1.0.0",
+  "description": "Fault-tolerant healthcare record store: MongoDB replica set, RSA/SHA-256 signed records, RBAC",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node scripts/seed.js",
+    "benchmark": "node scripts/benchmark.js",
+    "verify": "node scripts/verify_chain.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.5.0"
+  },
+  "license": "MIT"
+}

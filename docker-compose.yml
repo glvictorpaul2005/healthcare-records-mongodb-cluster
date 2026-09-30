@@ -1,0 +1,44 @@
+# 3-node MongoDB replica set (1 primary + 2 secondaries) + API.
+# Heartbeats (default 2s) and election timeout (default 10s; set to 5s below)
+# drive automatic primary election when a node dies.
+services:
+  mongo1:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports: ["27017:27017"]
+    volumes: [mongo1-data:/data/db]
+    healthcheck: &hc
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  mongo2:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports: ["27018:27017"]
+    volumes: [mongo2-data:/data/db]
+    healthcheck: *hc
+  mongo3:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports: ["27019:27017"]
+    volumes: [mongo3-data:/data/db]
+    healthcheck: *hc
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongo1: {condition: service_healthy}
+      mongo2: {condition: service_healthy}
+      mongo3: {condition: service_healthy}
+    volumes: [./scripts/init-replica.sh:/init-replica.sh:ro]
+    entrypoint: ["bash", "/init-replica.sh"]
+
+  api:
+    build: .
+    depends_on: [mongo-init]
+    env_file: .env.example
+    ports: ["3000:3000"]
+    volumes: [api-keys:/app/keys]
+
+volumes: {mongo1-data: {}, mongo2-data: {}, mongo3-data: {}, api-keys: {}}
